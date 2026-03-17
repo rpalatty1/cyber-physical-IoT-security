@@ -1,0 +1,49 @@
+COMP3217 Lab 3 Individual Report
+
+Username: rp2e24
+Lab Partner Username: svk1u24
+
+Task 1
+======
+Part 1: The relay board is a ‘12 volt learning type four remote control switch GV-RK04S-12’. It seems to be made by the brand ‘Geekcreit’, as there are listings for the same board on sites like eBay and Banggood for ‘Geekcreit 4 Channel 433Mhz Wireless Remote Control Switch…’, etc. Note: even though the board is branded as Geekcreit, the original manufacturers are probably generic OEMs based in China.
+
+Part 2: It is powered by connecting a 12V DC power source (plugged in) to the 12V+ and 12V- terminals on the board (max load 20A). The voltage it operates on is DC 12V.
+
+Part 3: The maximum current load is mentioned as 20A, but it isn’t specified if this is for the entire board or each relay module. We can assume the maximum current per relay is 20A as 5A per relay seems too low.
+
+Part 4: According to the datasheet, the relay board operates on either 315MHz or 433.92MHz. As we are in the UK, it should operate at Europe’s standard frequency for remote control devices at 433MHz, so would be 433.92MHz.
+
+Part 5: To calculate the antenna length use the formula for wavelength - 300/433.92=0.691m. As I plan to make a simple quarter wave antenna, 0.691/4=0.172m. This needs to be adjusted due to the velocity factor (VF) of material used. I would use wire (copper), where VF=0.95, so 0.172*0.95=0.164=16.4cm. To construct it, cut 16.4m long wire, strip one end of the coax cable (to show centre wire) and plug the other end into the device that sends/receives signals (PlutoSDR), and ensure the wire is vertical.
+
+
+Task 2
+=======
+Part 1: The sample rate directly determines the bandwidth. The higher the sample rate was, the wider the bandwidth.
+
+Part 2: 56.0Msps, which is the practical maximum for the PlutoSDR used.
+
+Part 3: 433.92MHz, which is the standard frequency for Europe.
+
+Part 4: Yes, other peaks appear alongside the main peak when buttons are pushed on the remote. As the bandwidth is around 2MHz, sidebands within this range are visible. Extra peaks appear as the remote’s signal isn’t a perfect single frequency as it is modulated to carry data (using OOK), which creates sidebands. The SDR and gqrx are also sensitive enough to pick up the remote’s signals.
+
+
+Task 3
+=======
+Part 1: This type of attack (replay attack) was very effective with this device. Effectiveness depends on several factors - device security mechanisms, quality of signal captured, range, etc. As the device uses fixed code, it sends the same signal for the command; there is also lack of encryption and no timestamps to reject old signals. Gain settings were adjusted during capture to ensure good SNR and minimal/no noise for a clean signal. The relay board and PlutoSDR were also placed close together (in range) to ensure the replayed signal reached the relay board and responded, meaning the attack worked successfully.
+
+Part 2: In replay attacks, the recorded signal is played back as captured, whereas reconstructing the signal involves capture, analysis, decoding data and creating a new signal from scratch to mimic the original. Some advantages are that it's a quick process, simple to perform with minimal knowledge of signals needed, and low risk of errors due to replaying the exact signal captured. Some disadvantages are it’s limited to fixed code systems, less flexible and relies heavily on signal quality, whereas reconstruction can be used on more secure systems, is flexible/customisable and can generate a perfect signal even with a noisy capture.
+
+Part 3: This type of attack is unlikely to work on a wireless car key. The success rate depends on the manufacture date of the car/car key, as old systems (1980s-1990s) use a fixed system, whereas modern systems (from 1990s) use rolling code, and challenge-response authentication (from 2000s) to prevent replay attacks. Modern car key systems are heavily encrypted, using timestamps to reject old signals, challenge-response for two-way communication, complex protocols and overall signal due to modulations such as FSK (compared to OOK). This means replayed signals are invalid, and even if captured it's harder to reuse or modify the signal.
+
+
+Task 4
+=======
+Part 1: The repeating unit for button A is ‘05510455100’ or ‘01110111000’. For button B it's ‘05510455010’ or ‘01110111010’. For button C it's ‘05510455400’ or ‘01110111000’. For button D it's ‘05510455040’ or ‘01110111010’. The first part of the sequence, ‘0551045’ or ‘011101110’, is consistent.
+
+Part 2: The last few digits differ per button (A ends ‘5100’, B ends  ‘5010’, C ends  ‘5400’ and D ends ‘5040’). Converted into binary, A/C (‘01110111000’) and B/D (‘01110111010’) have the same sequence, suggesting they control the 2 channels’ on/off commands in the relay (as per OOK). A/C transmit logic ‘0’/‘off’ or relay deactivates, whereas B/D transmit ‘1’/‘on’ or relay activates. So, A can be ‘off’ for channel 1, B can be ‘on’ for channel 1, and C can be ‘off’ for channel 2 and D can be ‘on’ for channel 2.
+
+Part 3: The encoder chip is most likely to be ‘EV1527’. From the remote’s PCB markings, we can see the 4 buttons, ‘F1578T_v1.0’ (model number) and an 8-pin SOIC chip below the battery, which is common in the ‘EV1527’ encoder chip. It has a 3V battery, usually used for low RF remotes, and has learning code capability (mentioned in manual) - A/C and B/D share sequences, which matches ‘EV1527’ characteristics. The signal captured also matches this, as the signal sequence repeats 8-12 times (11 times).
+
+Part 4: Using this information, we know EV1527 uses a 12-bit unique ID field. The number of different ID codes supported by this system would be 2^12 = 4096.
+
+Part 5: First need to calculate the time taken to send one signal, then multiply by the number of possible combinations. Assuming the typical rate for EV1527 is 500bps, for a 20-bit signal (total length), its (1/500)*20=40ms. Then including repetition (11 times) and possible delay between signals (estimate 20ms), its (40*11)+20=460ms=0.46seconds to send one signal. To fuzz all combinations, it’ll be 0.46*4096=1884.16seconds=31.403minutes. So with the assumed bit rate for EV1527, it’ll take around 31.4mins to fuzz every ID code combination and open the door without a keypad.

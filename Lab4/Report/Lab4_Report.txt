@@ -1,0 +1,94 @@
+COMP3217 Lab 4 Individual Report
+
+Username: rp2e24
+Lab Partner Username: svk1u24
+
+Task 1
+======
+Part 1: First we need to calculate the wavelength by doing c/f (as we were only given the frequency). Wavelength = the speed of light (3*10^8 m/s) / frequency (1878.8*10^6 Hz) = 0.15967…m ≈ 15.97cm. It can be assumed that a quarter-wave monopole antenna will be used, as this is what is common with LimeSDR minis, so we divide our value by 4, which is 3.9925cm. This means to receive the GSM signal (1878.8MHz), the antenna should be approximately 4cm long. 
+
+Part 2: The UK uses both the GSM 900 band (880-915MHz uplink, 925-960MHz downlink) as well as GSM 1800 band (1710-1785MHz uplink, 1805-1880MHz downlink).
+
+Part 3: An ARFCN (Absolute Radio Frequency Channel Number) is the unique identifier used by GSM to specify a pair of frequency channels within a given GSM frequency band - for uplink (mobile to base station) and downlink (base station to mobile). As the GSM Network in the lab is at 1878.8MHz, ARFCN values for the 1800 band are typically 512-885. For this specific lab frequency, ARFCN = ((downlink frequency - base frequency)/0.2)+512 = ((1878.8-1805.2)/0.2)+512 = 880.
+
+Part 4: GSM Standard supports the encryption methods A5/0 (no encryption), A5/1, A5/2, A5/3.
+
+Part 5: All except A5/3 can be cracked. A5/0 is crackable as there is no encryption - data transmitted in plaintext. A5/1’s stream cipher has a short session key length (64 bits) and predictable keystream, easy to crack by capturing traffic and recovering session key with precomputed rainbow tables and decoding. A5/2 has a weakened stream cipher (64 bit key) and is considered obsolete, easy to crack in real-time with minimal data. A5/3 is a block cipher based on KASUMI algorithm using a secure 64-128 bit key resistant to cryptanalytic attacks, so it's hard to crack.
+
+Part 6: MNC is a 2 or 3 digit code that identifies a specific mobile network operator within a country to help distinguish different network operators within the same country and helps facilitate network selection, roaming and billing, by identifying the operator the mobile device is connected to (eg: O2, Vodafone, etc). MCC is a 3 digit code that identifies the country where the mobile network operates. This ensures that the mobile device can identify and connect to networks in the correct country (eg: UK’s MCC is 234).
+
+Part 7: Parameters on the SIM card used to authenticate a mobile device to a network are the IMSI (International Mobile Subscriber Identity) and Ki (individual Subscriber Authentication Key). The IMSI is a unique identifier sent to the network to identify the subscriber and locate their authentication data in the HLR (Home Location Register) or AuC (Authentication Centre). Ki is a 128 bit secret key used with the A3 algorithm to compute a signed response for authentication with the A8 algorithm to help generate the session key (Kc) for encryption.
+
+Part 8: IMEI is a unique 15 digit number assigned to the mobile device’s hardware to identify the physical device itself stored in the firmware, whereas IMSI is a unique 15 digit identifier stored on the SIM card to identify the subscriber and their network operator. The IMEI is used to identify and track the mobile device for things such as device authentication, network management, EIR (Equipment Identity Register), warranty, etc, whereas IMSI is used for network registration, authentication, roaming, billing, etc. IMEI is publicly available whereas IMSI is private and sensitive (protected by TSMI).
+
+Part 9: TMSI (Temporary Mobile Subscriber Identity) number is a 32 bit temporary identifier used by GSM and mobile networks for subscriber privacy. It’s assigned by the network to the mobile device after initial authentication and is used in place of the IMSI; only unique within a specific location area for a limited time and can be reassigned when location changes. This reduces the frequent transmission therefore exposure of IMSI, which is a permanent and sensitive identifier. It helps reduce the risk of attacks like IMSI catching and is more efficient as it uses a shorter, temporary identifier for frequent communications. 
+
+Part 10: ‘Network Locked’ means that the mobile device is restricted to operate only with a specific network operator(s), typically being the one that sold the device. This restriction is enforced within the software or firmware settings in the device to check the SIM’s IMSI, preventing it from accepting SIM cards from other network operators if the MCC/MNC combination doesn’t match. It is used to ensure the customers remain in the operator’s network, eg: if the mobile device was sold as part of a contract. 
+
+Part 11: BCCH is a channel used by the base station to transmit essential information to all mobile devices within its coverage area. It carries multiple system information (SI) messages, which provide critical network and cell-specific parameters.This includes: network identity, frequency information, synchronisation, cell access and operational parameters. SI can also be categorised into different types based on the message content, eg: SI type 1 is cell channel description, ARFCN, and frequency hopping information.
+
+Part 12: CCCHs are a group of channels used to manage communication between the base stations and mobile devices before a dedicated channel is established. It handles bidirectional signalling for specific devices/groups. The CCCH group includes 3 main logical channels: Paging Channel (PCH - downlink) to notify specific mobile devices of incoming calls/SMS/other alerts, Random Access Channel (RACH - uplink) to allow mobile devices to initiate communication with the network, and Access Grant Channel (AGCH - downlink) to respond to RACH request by assigning a dedicated channel to the requesting device. 
+
+Part 13: TCHs are channels used to carry user data, such as voice calls, circuit-switched data, associated control information (FACCH or SACCH) or encrypted payload, between the mobile device and base station on dedicated time slots. It is dedicated to transmitting the contents of communications after a connection is established. AGCH assigns TCHs to devices after the RACH requests are made, specifying the ARFCN and timeslot required. 
+
+
+Task 2
+=======
+*see Figure 1
+
+Part 1: Yes, the GSM signal is visible at 1878.8MHz (Figure 1 - attached). (*Please ignore the fact I accidentally moved the cursor to a different frequency before the screenshot)
+
+Part 2: 1878.9MHz - 1878.7MHz = 0.2MHz. The bandwidth of the GSM is around 200kHz.
+
+Part 3: The bandwidth matches the theoretical standard bandwidth of a single ARFCN in GSM, which is also 200kHz. This shows that the lab GSM network is operating within GSM standards for this frequency (1878.8MHz).
+
+
+
+Task 3
+=======
+*see Figure 2
+
+Part 1: Command: ‘grgsm_livemon -f 1878.8M -s 1e6’. ‘grgsm_livemon’ is the main executable of the ‘grgsm_livemon’ tool, which launches the application to capture, process and analyse the GSM signals. ‘-f’ is used to specify the center frequency of the signal to capture (in Hz), so it is given as ‘1878.8M’ for 1878.8MHz. ‘-s’ is for the sample rate of the SDR (in samples per second), which is ‘1e6’, meaning 1000000 as 1e6 = 1*10^6. This corresponds to a 1MHz capture bandwidth that is sufficient enough to capture the 200kHz GSM channel and allows ‘grgsm_livemon’ to process the signal.
+
+Part 2: Due to the 30dB gain used, the raw level received by the SDR would be the displayed level (-60dBm) - gain value (30dB), making it -90dBm.
+
+Part 3: In the ‘Cell Channel Description’, ARFCN 880 has been advertised for the cell.
+
+Part 4: The MCC is shown as ‘Private Network (999)’, which is commonly used for test networks.
+
+Part 5: The MCN is shown as ‘Unknown 70’, which is likely a test value.
+
+Part 6: ‘RXLEV_ACCESS_MIN: < -110dBm (0)’. The RXLEV value is ‘0’, which corresponds to a signal strength threshold of less than -110dBm, this means that the minimum signal strength required to join the network is -110dBm or higher.
+
+Part 7: ‘MS TXPWR MAX CCH: 7’, so, the maximum allowed transmit power that devices should use to contact the cell is 22dBm (power control level 7) in GSM1800.
+
+Part 8: ‘Max retrans: Maximum 7 retransmissions (3)’, which means that the maximum number of retransmissions allowed by mobile devices is 7. The encoded value of ‘3’ corresponds to 7 retransmissions in GSM, which means that a device can attempt to access the cell via the RACH up to 8 times (initial attempt + 7 retransmissions).
+
+Part 9: ‘RE: Call Reestablishment not allowed in the cell (1)’, shows that call reestablishment is not allowed or is disabled by the cell. The RE value of 1 means that if a mobile device loses its connection (eg: due to a radio link failure), it can’t attempt to reestablish the call in this cell and the call will be terminated.
+
+Part 10: ‘Radio Link Timeout: 32 (7)’. The ‘Radio Link Timeout’ parameter is used to show the maximum number of consecutive SACCH’ block that a mobile device can fail to decode before it declares a radio link failure, terminating the connection. It ensures that a call is dropped if the radio link quality degrades below a recoverable point. In this case it has a ‘Radio Link Timeout’ of ‘32’, meaning the mobile device will terminate the call if it fails to decode 32 consecutive SACCHs (15.36 seconds).
+
+
+
+Task 4
+======
+Part 1: An ‘Immediate Assignment’ message assigns a dedicated channel to a mobile device in order to enable connection with the network for a specific purpose (eg: receiving SMS). In GSM, when a device sends a Channel Request on the RACH to initiate communication, the base station responds with an Immediate Assignment message on the Access Grant Channel (AGCH). This message allocated a dedicated channel, usually a SDCCH, for signalling the task. The ‘’Immediate Assignment’ message includes details such as channel type, timeslot, ARFCN, request reference, etc, allowing the mobile device to transition from the shared CCCH to the dedicated channel.
+
+Part 2: The type of control channel in use in the cell is ‘SDCCH/4’. This means that the mobile device uses a Standalone Dedicated Control Channel (SDCCH) that is configured to support 4 subchannels within a single timeslot in the GSM TDMS frame structure. It is a dedicated channel assigned to this specific mobile device for signalling tasks, in this case SMS delivery. It is structured to provide 4 independent subchannels in one timeslot, so can allow up to 4 devices to perform signalling simultaneously on the same timeslot.
+
+Part 3: The TMSI of the device that the SMS message was intended for is ‘0x61D33DC7’, captured from a ‘Paging Response’ message sent on the Paging Channel (PCH). This identifies the device’s TMSI, prompting it to request a dedicated channel via ‘Immediate Assignment’ to receive the SMS message.
+
+Part 4: The SMS message originated from the phone number ‘+447785016005’. This was determined from the RP-Originator Address in the Relay Protocol.  It has the UK country code ‘+44’, so has originated from the UK.
+
+Part 5: ‘+447785016005’ showed up again in the RP layer as the recipient. But the sender and recipient number may be the same as it is in a test environment for labs.
+
+Part 6: The content of the text message was ‘Your Two-Factor Authentication Code is 2672624. Congratulations! You managed to sniff the GSM Protocol Over-The-Air.’ 
+
+Part 7: Encryption is not enabled on this GSM cell as the message contents were in plaintext. If there was encryption, the message contents would need to be decrypted first  to read it. The ‘Ciphering Mode Command’ message on the SDCCH/4 channel can be used to determine if encryption has been applied.
+
+Part 8: If A5 encryption was in use, you can decipher it in grgsm_decode by confirming the A5 algorithm in ‘Ciphering Mode Command' message. Then obtain the ciphering key (Kc) and decrypting it by extracting the encrypted bursts and frame numbers from the capture and decrypt manually using A5/1 implementation. Finally feed the decrypted bursts back into grgsm_decode and analyse the decrypted messages of the capture in Wireshark.
+
+
+Task 5
+======
+Part 1:

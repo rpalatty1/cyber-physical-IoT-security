@@ -1,0 +1,55 @@
+COMP3217 Lab 1 Individual Report
+
+Username: rp2e24
+Lab Partner Username: svk1u24
+
+
+Task 1
+======
+A1: First, all details were extracted from LDAP output (eg: name, ID number, photo etc). The photo was Base-64 encoded, so was decoded with a tool (https://base64.guru/converter/decode/image). Canva (a design tool) was used to ensure only necessary details are on the ID by comparing to the university ID cards. To guarantee accuracy and scale, measurements were taken for placements, font style/size adjusted and even contacting student hub to ask about differences between staff and student IDs. The image was exported in the highest quality available, and Adobe Photoshop used to increase DPI to 600.
+
+
+Task 2
+=======
+B1: The type of NFC token is Mifare Classic 1K based on its AQTA value of ’00 04’ when using ‘nfc-list’, with a capacity of 1024 bytes (1KB) and 16 sectors based on its SAK value of ‘08’.
+
+B2: The token’s current UID is ’60 ee 26 02’. As it is a 4-byte (32-bit) UID, we can assume that the number of possible UIDs is 2^32, which is approximately 4.29 billion.
+
+B3: Information contained in the AQTA field in sector 0, found in block 0, includes information about the type of NFC device and its properties, such as memory size and its communication technology. It contains the UID and AQTA value (’00 04’), showing that this token supports ISO/IEC 1443A. 
+
+B4: The most common sizes in UID access cards are 4-byte (single UID), 7-byte (double UID) and 10-byte (triple UID). It isn’t one size as the UIDs will vary based on the card type and properties. Eg, the 4-byte is quite common and found in older mifare classic cards, whereas the 10-byte is less common and used for high security as it has a lower collision rate due to its UIDs containing more values. 
+
+B5: No, the values of Key A and Key B can’t be read directly from any of the sectors on this card as the keys encrypt the data on the sectors. Due to access control restrictions, you need permission first or need to know the keys to read sector data. Without the knowing keys, the sector data all shows up as ’00 00 00 00…etc’ by default. 
+
+B6: When using the command ‘mfoc -f 5000’ for brute forcing, it only took a few minutes to crack the keys as 11/16 sectors on the token uses default values (A as ‘ffffffffffff’ and B as ‘000000000000’), so only 5/16 sector keys needed to be cracked with effort. To speed up the process, the command ‘-O’ can be used to optimise the key cracking process. With this, it took less than a minute to crack all sectors' keys.
+
+B7: Sector 2, blocks 8, 9 and 10, contain some messages when decoded from hexadecimal to plaintext using ASCII. Block 8 contains a flag ‘flag{A123456789}’, block 9 contains the message ‘this sector is’, and block 10 contains the message ‘unsecured!’.
+
+B8: Sector 4, blocks 16, 17 and 18 are secured using different keys, which seem to be ‘COFFEE’, ‘i’ and  ‘ACCE55’. The content contained in block 16 is a flag ‘flag{B123456789}’, block 17 contains the message ‘this sector was’, and block 18 contains the message ‘secure once…’. 
+
+B9: Sector 6 uses Key A ‘fbca81f081ff’ and Key B ‘a1b563489211’, sector 7 uses Key A ‘9999816deb0b’ and Key B ‘b00b801243aa’, sector 8 uses Key A ‘556594012fee’ and Key B ‘9876c0bbfe90’, sector 9 uses Key A ‘818031a0f0f9’ and Key B ‘f24439956803’. Most of the data was unidentifiable, but sector 6 block 24 contains ‘GIF87a4’, which is a GIF header, so suggests it may contain an image in GIF format.
+
+B10: User data can be found in the first 3 blocks of sectors 1-15. Sector 0 has a different value to  all the other sectors as rather than user data, it contains the manufacturer data, such as the UID, AQTA, SAK and other properties of the overall NFC device.
+
+B11: Sector 4 contains ’07 88 7f 69’ in block 19 within the sector trailer (final block of the sector). These bits represent the access control bytes, which specifies permissions to this sector.  Key B required for the user data and key A used for the sector trailer. As it is a different set of bits compared to most sectors, it suggests that the sector has been configured to restrict access for reading or writing to this sector. This means we need to ensure that the correct keys are used to read or write in this sector.
+
+B12: Dump file created containing all values using ‘mfoc -O dump.mfd’. Then file opened in hexedit (editor tool) using ‘hexedit dump.mfd’ and values in sector 4 block 1 modified to our ECSIDs (https://www.rapidtables.com/convert/number/hex-to-ascii.html used to convert ECSIDs from plaintext to hexadecimal using ASCII). Changes saved and ‘nfc-mfclassic w A u dump.mfd’ used to write this new data onto the token. ‘Nfc-mfclassic’ tool to interact with the token (in libnfc library), ‘w’ as we are writing data, ‘A’ to specify key A used for authentication, ‘u’ for UID to ensure correct device, ‘dump.mfd’ is what we are writing to the token.
+
+B13: ‘Magic cards’ are usually used for security testing and identifying vulnerabilities, as it is cheap and easy to clone. It usually uses default keys (Key A ‘ffffffffffff’ and key B ‘000000000000’), the sector trailer is usually configured in a way that reading a writing is quite simple. Stock cards from the manufacturer are usually more expensive and personalised, with unique non-default encrypted keys, which makes it more secure than ‘magic cards’.  
+
+B14: Sector 3 contains ’00 F0 FF 69’ in block 14 within the sector trailer which specifies access and permissions to this sector. Originally the sector and blocks were unavailable  when using ‘mfoc’ and had to be extracted and opened in an editor (hexedit) to view. This suggests it has been configured with stronger protections or different access settings compared to the other sectors. Need to ensure the correct keys are used to write to this sector (e.g. key B required to modify block 14).
+
+B15: First, ‘mfterm’ to open mifare classic tool that allows straightforward interaction with token, then ‘read unlocked’ to read data from token, ‘print’ to view current data, ‘set 0c 00 (ECSIDs)’ to modify values in that specific block, ‘print’ to ensure changes are correct, ‘write unlocked’ to write the modified data to the token. Read and printed again to check changes have been made. 
+
+B16: For the token to allow access to the building labs, the UID needs to be changed to the one that we know has access already (UID provided). As it is a ‘magic card’, it was simple to modify the UID as it wasn’t locked. First ‘nfc-list’ to check current UID, then ‘nfc-mfsetuid ba 5e ba 11’ to modify the UID of the token to the one specified. Finally check the UID has changed by using ‘nfc-list’ again.
+
+
+Task 3
+=======
+C1: By myself, probably not. Building a secure card reader system that interacts with online banking or other systems from scratch seems like a very complex task requiring not only a lot of hardware and software components that may be quite expensive and hard to access, it would also require a lot of time and effort to research, learn, build, test etc. Short answer, no :D
+
+C2: It could work if best practices are followed in the hardware and software aspects of it, as well as cryptographic, and if there is thorough risk management and testing to ensure the security of the card reader system. To safely test it, multiple rounds of testing are definitely needed in different types of environments so that no critical information is compromised. Eg, initial testing should be within a safe isolated network to simulate real life transactions without actually connecting it to any online systems. Mock data should be collected and used so that real accounts and card details aren’t at risk. Penetration testing should be done to simulate real world attacks.   
+
+C3: By yourself, definitely not. But if you have a team with the right level of expertise, with the knowledge and resources needed to continuously address new vulnerabilities as they arise, maybe. Not only technical skills are needed, you also need to think about the legal and ethical complications. What if something goes wrong (eg, data breach)? There will also be  a lot of competition on the market. Will your system be used enough to fund the resources required to maintain the system?
+
+C4: Technically it is possible, but it seems very complex as nowadays there are many different card types and standards; due to this, many challenges may arise. The main issue probably being within cross compatibility and software complexity, as it needs to be a multi-technology secure card reader. Also, all modern cards have strong encryption and authentication protocols, so the reader will need to handle all these communications securely. I wouldn’t. 

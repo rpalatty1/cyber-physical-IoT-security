@@ -1,0 +1,48 @@
+COMP3217 Lab 2 Individual Report
+
+Username: rp2e24
+Lab Partner Username: svk1u24
+
+
+Task 1
+======
+Part 1: The ChipWhisperer Capture program is a tool that helps us to interact with and control the ChipWhisperer Lite hardware so that we can record and observe the power traces produced while the target device executes encryption. It is used in the data collection phase in side-channel attacks, whereas the ChipWhisperer Analyzer helps to process and investigate the captured power traces for the extraction and analysis of useful information such as encryption keys, which is mainly used in the attack part of side-channel attacks.
+
+Part 2: The SimpleSerial communications system is a serial protocol that helps the host interact with the target device. Some commands defined as part of SimpleSerial to help investigate side-channel attacks include: ‘x’ to reset the buffers and initialise the system to ensure our operations start from a known state; ‘k’ to load a cryptographic key into the target device, which we can use for test attacks with a known key;  ‘p’ to send plaintext input for encryption, to enable controlled operations; as well as ‘c’ to retrieve the ciphertext after encryption, so we can correlate the power traces with cryptographic outputs.
+
+Part 3: Some lines from the target MCU connected to the FPGA include: the clock input/output (CLKIN/CLKOUT) to generate an external clock to control execution speed and ensure precise timings for glitches; UART (TXD,RXD) for communication between the MCU and FPGA, so TXD sends encrypted outputs from MCU to FPGA and RXD sends commands from FPGA to MCU; glitch line helps inject faults for the glitch attacks; power measurement line (VCC,GNT) allows capture and analyse of power traces; trigger line to signal the start and end of encryption and allow accurate alignment of power traces.
+
+Part 4: The command ‘trigger_high()’ sets the trigger signal as high ( or 1) from the MCU to signal the start of encryption operation and tells the FPGA to start capturing power traces. It ensures the power trace is only captured during encryption to avoid unnecessary data. The command ‘trigger_low()’ sets the trigger signal as low (0) and signals the end of the encryption operation and tells the FPGA to stop capturing power traces, ensuring only relevant data is recorded, therefore reducing noise in power traces. This allows effective correlation power analysis (CPA).
+
+
+Task 2
+=======
+Part 1: (image1) First there’s some noise (0-0.3 Samples) indicating initialisation, corresponding to functions at the start of ‘main()’ (‘platform_init’, ‘init_uart’, ‘trigger_setup’). Then some dips followed by a stable section (0.3-1 Samples), might represent the trigger low (‘trigger_low()’) and password input (‘my_puts’, ‘my_read’) due to low activity possibly awaiting user input (‘getch()’). Rising and falling from 1-1.4+ Samples represents the trigger high (‘trigger_high()’) and computational loop for the multiplication (‘x=x*77’, ‘atoi(passwd)’) due to sharp changes. Final stabilisation (1.4-2 Samples) could be the final output (‘my_puts(“Done.\n”)) and LED (‘led_ok(1)’), the end of loop.
+
+Part 2: (image2) Comparing inputs 20, 30 and 50, the most noticeable difference was in the length and number of spike clusters in the repetitive section of the C program (the ‘for’ loop). The number of spike clusters increases with the input value, corresponding with the increased duration of the loop section. 20n had fewer clusters (20-25ish), spanning from around 1-1.8 Samples, whereas 50n had many spike clusters (50-55ish), extending to around 2 Samples. The amplitude, shape and trace duration remained somewhat consistent over the different value inputs.
+
+Part 3: One iteration of the counting loop is around 0.03 Samples (between 0.02-0.04 Samples). It won’t always be the same as there are many factors that can cause variations, such as the data-dependent execution, loop conditions (e.g. different optimisation for different inputs) or variations in power supply or environmental noise.
+
+
+Task 3
+=======
+Part 1: (image3) The difference between the traces is that when 0 characters are correct (red), there is only one iteration visible (single cluster of spikes), whereas with 1 character correct (yellow), there are 2 iterations as the first character has matched; due to this, the duration of the loop section is longer - red is around 0.2 Samples, whereas yellow is around 0.4 Samples.
+
+Part 2: (image4) 185-145=40, so 40 Samples(pts) or 0.04 Samples (kpts).
+
+Part 3: After importing necessary libraries and target setup based off countup.py, initialise variables such as the password which can be updated as each character is cracked and ensure reset of target to improve alignment over multiple traces. Then create a bruteforce loop to iterate characters mentioned in passwd.py with 'i' being 11+ to ensure the whole password will be cracked. It constructs the password attempt by replacing the character at position ‘i’ with the guess, then grabs a trace and checks the location based on the initial sample point that we calculated (‘145 + 40 * i’) and update the password (image5, image6).
+
+Part 4: ‘d3n1snic0le’ 
+
+Part 5: ‘potato1234’
+
+
+Task 4
+=======
+Part 1: A CPA (Correlation Power Analysis) attack is a type of side-channel attack used to extract cryptographic keys by analysing the power consumption of the target device during encryption operations, in this case, an AES key. It uses the correlation between the predicted power consumption to what is measured by capturing multiple power traces during encryption, so with enough traces, the noise in traces can be averaged out and through statistical correlation, the correct key is recognised.
+
+Part 2: (image7) 01 18 99 98 81 99 91 19 72 53 FF FF FE FF FF FF
+
+Part 3: To improve the accuracy of a CPA attack, you could increase the number of traces taken to average out the noise and make the signal less obscure, which helps with the statistical correlation aspect of CPA so that the key stands out. Ensuring alignment of traces by adjusting trigger timings or resynchronisation can also help provide a stronger, clearer correlation to increase the accuracy of finding the key.
+
+Part 4: (image8) ‘Well done - you extracted an AES Key using a sidechannel attack! Whilst this may seem trivial, there are many applications of this type of attack on real-world hardware!’
