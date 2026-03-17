@@ -3,8 +3,8 @@
 **Module:** COMP3217 – Security of Cyber Physical Systems  
 
 ## Overview
-Hands-on security analysis of embedded systems, contactless cards, IoT devices, and wireless communication protocols, including practical exploitation of real-world vulnerabilities.
-Demonstrates practical attack techniques and analysis skills.
+Security analysis of embedded systems, contactless cards, IoT devices, and wireless communication protocols, including practical exploitation of real-world vulnerabilities.
+Demonstrated practical attack techniques and analysis skills.
 
 ## Tools & Technologies
 - ChipWhisperer (side-channel analysis)  
