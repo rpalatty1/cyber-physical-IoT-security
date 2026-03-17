@@ -52,7 +52,7 @@ Demonstrated practical attack techniques and analysis skills.
 - Cryptographic attack techniques  
 - Protocol analysis & packet inspection  
 
-## 📄 Deliverables
+## Deliverables
 - Lab reports and technical analysis  
 - Power trace captures & SDR recordings  
 - NFC card dumps and attack results  
